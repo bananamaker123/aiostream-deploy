@@ -2,21 +2,17 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-# Use npm instead of pnpm (simpler, reliable)
+# Install deps
 COPY package*.json ./
-
-# Install deps with npm (ignores pnpm patches/lockfile)
 RUN npm install
 
-# Copy everything
+# Copy source
 COPY . .
 
-# Create missing paths
-RUN mkdir -p /app/data /app/packages/{frontend,server,core}/dist/out || true
-
-# Try build, fallback to source if fails
-RUN npm run build || echo "Using source code"
+# Create dirs
+RUN mkdir -p /app/data /app/packages/server/dist
 
 EXPOSE $PORT
 
-CMD ["sh", "-c", "npm run start || node packages/server/dist/server.js || node packages/server/src/server.js || echo 'Server start failed'"]
+# Find and run the ACTUAL server file
+CMD ["sh", "-c", "find packages/server -name '*.js' -path '*/server*' | head -1 | xargs node || node packages/server/index.js || npm start || echo 'No server found'"]
