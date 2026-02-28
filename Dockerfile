@@ -2,12 +2,17 @@ FROM node:24-alpine
 
 WORKDIR /app
 
+# Install dependencies including ts-node for running TypeScript directly
 COPY package*.json ./
-RUN npm install
+RUN npm install && npm install -g ts-node typescript
+
+# Copy all source files
 COPY . .
-RUN mkdir -p /app/data /app/packages/server/dist
+
+# Ensure data directory exists
+RUN mkdir -p /app/data
 
 EXPOSE $PORT
 
-# MOST COMMON AIOSTREAMS ENTRYPOINT
-CMD ["sh", "-c", "cd packages/server && npm start || node src/server.js || node index.js || npm run dev"]
+# Run the TypeScript server file directly
+CMD ["ts-node", "packages/server/src/server.ts"]
